@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anagrama CSJI - Turma da Tia Tati</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 80px; /* Dá espaço para a logo na parte inferior */
+            background-color: #7eb3e6;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        #container {
+            margin-top: 20px;
+        }
+
+        #studentImage {
+            max-width: 300px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .letter {
+            font-size: 24px;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+        }
+
+        .letter.selected {
+            background-color: #e0e0e0;
+        }
+
+        .letter.correct {
+            background-color: green;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .letter.wrong {
+            background-color: red;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #restart {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #restart:hover {
+            background-color: #45a049;
+        }
+
+        #schoolLogo {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 150px;  /* Ajuste o tamanho da logo */
+            height: auto;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ESCOLHA AS LETRAS DO SEU NOME</h1>
+    <div id="container">
+        <img id="studentImage" src="" alt="Aluno">
+        <div id="letters"></div>
+        <p id="selectedLetters"></p>
+        <p id="message"></p>
+    </div>
+    <button id="restart" onclick="restartGame()">Reiniciar</button>
+
+    <!-- Logo do CSJI na parte inferior -->
+    <img id="schoolLogo" src="csji_logo.png" alt="Logo CSJI">
+
+    <script>
+        const students = [
+            { name: "ALLANA", image: "allana.jpeg" },
+            { name: "ALICE", image: "alice.jpeg" },
+            { name: "AYLA", image: "ayla.jpeg" },
+            { name: "DAVI", image: "davi.jpeg" },
+            { name: "DAVI LUCCA", image: "davi_lucca.jpeg" },
+            { name: "ESTER", image: "ester.jpeg" },
+            { name: "GAEL", image: "gael.jpeg" },
+            { name: "HEITOR", image: "heitor.jpeg" },
+            { name: "ISIS", image: "isis.jpeg" },
+            { name: "JOÃO PEDRO", image: "joao_pedro.jpeg" },
+            { name: "JOHN", image: "john.jpeg" },
+            { name: "LORENZO", image: "lorenzo.jpeg" },
+            { name: "LUCAS", image: "lucas.jpeg" },
+            { name: "MANUELLA", image: "manuella.jpeg" },
+            { name: "MIGUEL", image: "miguel.jpeg" },
+            { name: "VALLENTINA", image: "vallentina.jpeg" }
+        ];
+
+        let remainingStudents = [...students];
+        let currentStudent = null;
+        let selectedLetters = "";
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function loadNextStudent() {
+            if (remainingStudents.length === 0) {
+                document.querySelector("h1").textContent = "Turma da Tia Cátia";
+                document.getElementById("container").innerHTML = "<h2>Todos completaram! Parabéns!</h2>";
+                document.getElementById("restart").style.display = "block";
+                return;
+            }
+
+            selectedLetters = "";
+            currentStudent = remainingStudents[Math.floor(Math.random() * remainingStudents.length)];
+            document.getElementById("studentImage").src = currentStudent.image;
+            document.getElementById("message").textContent = "";
+            document.getElementById("selectedLetters").textContent = "";
+
+            let nameWithoutSpace = currentStudent.name.replace(/\s+/g, '');
+            let shuffledLetters = shuffle(nameWithoutSpace.split(""));
+
+            let lettersContainer = document.getElementById("letters");
+            lettersContainer.innerHTML = "";
+
+            shuffledLetters.forEach(letter => {
+                let btn = document.createElement("button");
+                btn.textContent = letter;
+                btn.classList.add("letter");
+                btn.onclick = () => selectLetter(letter, btn);
+                lettersContainer.appendChild(btn);
+            });
+        }
+
+        function selectLetter(letter, btn) {
+            if (btn.classList.contains("correct") || btn.classList.contains("wrong")) return;
+
+            selectedLetters += letter;
+            btn.classList.add("selected");
+
+            let correctNameWithoutSpace = currentStudent.name.replace(/\s+/g, '');
+
+            if (selectedLetters === correctNameWithoutSpace.substring(0, selectedLetters.length)) {
+                btn.classList.add("correct");
+                document.getElementById("selectedLetters").textContent = selectedLetters;
+
+                if (selectedLetters === correctNameWithoutSpace) {
+                    let finalName = currentStudent.name;
+                    document.getElementById("message").textContent = `Parabéns! ${finalName}`;
+                    document.getElementById("message").style.color = "green";
+                    remainingStudents = remainingStudents.filter(s => s !== currentStudent);
+                    setTimeout(loadNextStudent, 2000);
+                }
+            } else {
+                document.getElementById("message").textContent = "Errou! Tente novamente!";
+                document.getElementById("message").style.color = "red";
+                document.querySelectorAll(".letter").forEach(button => button.disabled = true);
+                setTimeout(loadNextStudent, 2000);
+            }
+        }
+
+        function restartGame() {
+            remainingStudents = [...students];
+            document.querySelector("h1").textContent = "ESCOLHA AS LETRAS DO SEU NOME";
+            document.getElementById("restart").style.display = "none";
+            loadNextStudent();
+        }
+
+        window.onload = loadNextStudent;
+    </script>
+</body>
+</html>
